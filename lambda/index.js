@@ -69,7 +69,7 @@ exports.handler = function(event, context, callback) {
         statusCode: '403',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
         body: JSON.stringify({
             error: 'Not supported image dimensions.'
         }),
@@ -82,7 +82,7 @@ exports.handler = function(event, context, callback) {
         statusCode: '403',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
         body: JSON.stringify({
             error: 'Not supported image extension.'
         }),
