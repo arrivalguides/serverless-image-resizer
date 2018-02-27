@@ -6,8 +6,8 @@ const Sharp = require('sharp');
 const Url = require('url');
 
 
-const BUCKET_SOURCE = process.env.BUCKET_SOURCE;
-const BUCKET_TARGET = process.env.BUCKET_TARGET;
+const BUCKET = process.env.BUCKET;
+// const BUCKET_TARGET = process.env.BUCKET_TARGET;
 const URL = process.env.URL;
 const ALLOWED_DIMENSIONS = new Set();
 const ALLOWED_EXTENSIONS = new Set();
@@ -31,7 +31,9 @@ exports.handler = function(event, context, callback) {
   if (key === undefined) {
     return callback(null, {
       statusCode: '400',
-      body: JSON.stringify({error: 'Key does not exists.'}),
+      body: JSON.stringify({
+          error: 'Key does not exists.'
+    }),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -43,11 +45,13 @@ exports.handler = function(event, context, callback) {
   if (match === null) {
     // URL don't match regexp
     return callback(null, {
-      statusCode: '400',
-      body: JSON.stringify({ error: 'Key does not match form: Nx?N?/name.[jpeg|jpg|png|tiff|webp]. Not supported image format.' }),
-      headers: {
+        statusCode: '400',
+        body: JSON.stringify({
+            error: 'Key does not match form: Nx?N?/name.[jpeg|jpg|png|tiff|webp]. Not supported image format.'
+        }),
+        headers: {
             'Content-Type': 'application/json'
-      }
+        }
     });
   }
   
@@ -66,7 +70,9 @@ exports.handler = function(event, context, callback) {
         headers: {
             'Content-Type': 'application/json'
         }
-        body: JSON.stringify({ error: 'Not supported image dimensions.' }),
+        body: JSON.stringify({
+            error: 'Not supported image dimensions.'
+        }),
     });
     return;
   }
@@ -77,7 +83,9 @@ exports.handler = function(event, context, callback) {
         headers: {
             'Content-Type': 'application/json'
         }
-        body: JSON.stringify({ error: 'Not supported image extension.' }),
+        body: JSON.stringify({
+            error: 'Not supported image extension.'
+        }),
     });
     return;
   }
@@ -93,7 +101,7 @@ exports.handler = function(event, context, callback) {
   
 
   // Let get metadata by key
-  S3.headObject({Bucket: BUCKET_SOURCE, Key: originalKey}, function(err, data) {
+  S3.headObject({Bucket: BUCKET, Key: originalKey}, function(err, data) {
 
     if (err) {
       // Can't find this file
@@ -108,7 +116,7 @@ exports.handler = function(event, context, callback) {
       });
     }
     
-    S3.getObject({Bucket: BUCKET_SOURCE, Key: originalKey}).promise().then((data) => {
+    S3.getObject({Bucket: BUCKET, Key: originalKey}).promise().then((data) => {
       let image = Sharp(data.Body);
       return image.metadata().then((metadata) => {
 
@@ -148,7 +156,7 @@ exports.handler = function(event, context, callback) {
       });
     }).then(buffer => S3.putObject({
       Body: buffer,
-      Bucket: BUCKET_TARGET,
+      Bucket: BUCKET,
       ContentType: supportWebP ? 'image/webp' : 'image/jpeg',
       Key: key,
       Tagging: "resized=true"
