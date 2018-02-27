@@ -37,7 +37,8 @@ Resources:
       Timeout: 60
       Environment:
         Variables:
-          BUCKET: !Ref ImageBucket
+          BUCKET_SOURCE: !Ref ImageBucket
+          BUCKET_TARGET: !Ref ImageBucket
           URL: !GetAtt ImageBucket.WebsiteURL
       Policies:
           Statement:
