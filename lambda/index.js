@@ -30,13 +30,13 @@ exports.handler = function(event, context, callback) {
   // If we don't have key, that contain path to image, then we can't continue
   if (key === undefined) {
     return callback(null, {
-      statusCode: '400',
-      body: JSON.stringify({
-          error: 'Key does not exists.'
-    }),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+        statusCode: '400',
+        body: JSON.stringify({
+            error: 'Key does not exists.'
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
     });
   }
 
@@ -59,8 +59,8 @@ exports.handler = function(event, context, callback) {
   const dimensions = match[1];
   const width = parseInt(match[2], 10);
   const height = parseInt(match[3], 10);
-  const originalKey = match[4];
-  const originalExtension = match[5];
+  let originalKey = match[4];
+  let originalExtension = match[5];
 
   
   
@@ -94,11 +94,20 @@ exports.handler = function(event, context, callback) {
   S3.getObject({
             Bucket: BUCKET_SOURCE,
             Key: originalKey
-      }).promise().then(data => Sharp(data.Body)
-            .resize(width, height)
-//          .toFormat('png')
-            .toBuffer()
-    ).then(buffer => S3.putObject({
+      }).promise().then(data => {
+          
+        let image = Sharp(data.Body);
+          
+        if ((originalExtension !== 'webp') && ('accept' in event.headers) && ( event.headers['accept'].indexOf('webp') > -1)) {
+                const extensionFix = RegExp(/.(jpeg|jpg|png|tiff|webp)/,'ig');
+                key = key.replace(extensionFix, '.webp');
+                originalExtension = 'webp';
+                return image.resize(width, height).toFormat('webp').toBuffer();
+        } 
+            
+        return image.resize(width, height).toBuffer();
+          
+    }).then(buffer => S3.putObject({
             Body: buffer,
             Bucket: BUCKET_TARGET,
             ContentType: `image/${originalExtension}`,
