@@ -90,84 +90,26 @@ exports.handler = function(event, context, callback) {
     return;
   }
   
-  const supportWebP = (event.headers.Accept.indexOf('webp') > -1);
-  const parsedURL = Url.parse(event.queryStringParameters.key, true, true);
   
-  // If browser support webp — redirect to webp
-  if (supportWebP && originalExtension !== 'webp') {
-    const extensionFix = RegExp(/.(jpeg|jpg|png|tiff|webp)/,'ig');
-    key = key.replace(extensionFix, '.webp');
-  }
-  
-
-  // Let get metadata by key
-  S3.headObject({Bucket: BUCKET_SOURCE, Key: originalKey}, function(err, data) {
-
-    if (err) {
-      // Can't find this file
-      return callback(null, {
-        statusCode: '404',
-        body: JSON.stringify({
-            error: 'Key does not exists.'
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    }
-    
-    S3.getObject({Bucket: BUCKET_SOURCE, Key: originalKey}).promise().then((data) => {
-      let image = Sharp(data.Body);
-      return image.metadata().then((metadata) => {
-
-        // Let's calculate image size
-        // 0 minimal
-        // 5000 maximal
-        // But no upscale
-        // Aspect ratio maintained
-        let width = parsedURL.query.width ? parsedURL.query.width : (match[2] === undefined) ? metadata.width : parseInt(match[2], 10);
-        let height = parsedURL.query.height ? parsedURL.query.height : (match[3] === undefined) ? null : parseInt(match[3], 10);
-
-        let isHeight = (height !== null);
-        let ratio = isHeight ? width / height : metadata.width / metadata.height;
-        let targetWidth = Math.floor(Math.max(0, Math.min(Math.min(parseInt(width, 10), metadata.width), 5000)));
-        let targetHeight = Math.floor(Math.max(0, Math.min(targetWidth / ratio, 5000)));
-
-        if (supportWebP) {
-          return image
-            .resize(targetWidth, targetHeight)
-            .crop(Sharp.gravity.north)
-            .webp({
-                quality: 90,
-                force: true
-            })
-            .toBuffer();
-        }
-        
-        return image
-          .resize(targetWidth, targetHeight)
-          .crop(Sharp.gravity.north)
-          .jpeg({
-                quality: 90, 
-                chromaSubsampling: '4:4:4'
-          })
-          .toBuffer();
-
-      });
-    }).then(buffer => S3.putObject({
-      Body: buffer,
-      Bucket: BUCKET_TARGET,
-      ContentType: supportWebP ? 'image/webp' : 'image/jpeg',
-      Key: key,
-      Tagging: "resized=true"
-    }).promise()).then(() => callback(null, {
-      statusCode: '301',
-      headers: {
-        'location': `${URL}/${key}`
-      },
-      body: ''
-    })).catch(err => callback(err));
-  });
+  S3.getObject({
+            Bucket: BUCKET_SOURCE,
+            Key: originalKey
+      }).promise().then(data => Sharp(data.Body)
+            .resize(width, height)
+//          .toFormat('png')
+            .toBuffer()
+    ).then(buffer => S3.putObject({
+            Body: buffer,
+            Bucket: BUCKET_TARGET,
+            ContentType: buffer.ContentType,
+            Key: key,
+      }).promise()
+    ).then(() => callback(null, {
+            statusCode: '301',
+            headers: {'location': `${URL}/${key}`},
+            body: '',
+      })
+    ).catch(err => callback(err))
     
     
 }
