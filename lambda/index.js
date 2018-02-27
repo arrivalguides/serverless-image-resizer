@@ -102,6 +102,7 @@ exports.handler = function(event, context, callback) {
                 const extensionFix = RegExp(/.(jpeg|jpg|png|tiff|webp)/,'ig');
                 key = key.replace(extensionFix, '.webp');
                 originalExtension = 'webp';
+                
                 return image.resize(width, height).toFormat('webp').toBuffer();
         } 
             
