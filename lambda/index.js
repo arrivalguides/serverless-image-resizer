@@ -6,8 +6,8 @@ const Sharp = require('sharp');
 const Url = require('url');
 
 
-const BUCKET = process.env.BUCKET;
-// const BUCKET_TARGET = process.env.BUCKET_TARGET;
+const BUCKET_SOURCE = process.env.BUCKET_SOURCE;
+const BUCKET_TARGET = process.env.BUCKET_TARGET;
 const URL = process.env.URL;
 const ALLOWED_DIMENSIONS = new Set();
 const ALLOWED_EXTENSIONS = new Set();
@@ -101,7 +101,7 @@ exports.handler = function(event, context, callback) {
   
 
   // Let get metadata by key
-  S3.headObject({Bucket: BUCKET, Key: originalKey}, function(err, data) {
+  S3.headObject({Bucket: BUCKET_SOURCE, Key: originalKey}, function(err, data) {
 
     if (err) {
       // Can't find this file
@@ -116,7 +116,7 @@ exports.handler = function(event, context, callback) {
       });
     }
     
-    S3.getObject({Bucket: BUCKET, Key: originalKey}).promise().then((data) => {
+    S3.getObject({Bucket: BUCKET_SOURCE, Key: originalKey}).promise().then((data) => {
       let image = Sharp(data.Body);
       return image.metadata().then((metadata) => {
 
@@ -156,7 +156,7 @@ exports.handler = function(event, context, callback) {
       });
     }).then(buffer => S3.putObject({
       Body: buffer,
-      Bucket: BUCKET,
+      Bucket: BUCKET_TARGET,
       ContentType: supportWebP ? 'image/webp' : 'image/jpeg',
       Key: key,
       Tagging: "resized=true"
