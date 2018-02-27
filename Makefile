@@ -1,4 +1,4 @@
-.PHONY: all image package dist clean
+.PHONY: all image package dist zip clean
 
 all: package
 
@@ -8,7 +8,9 @@ image:
 package: image
 	docker run --rm --volume ${PWD}/lambda:/build amazonlinux:nodejs npm install --production
 
-dist: package
+dist: package zip
+
+zip:
 	cd lambda && zip -FS -q -r ../dist/function.zip *
 
 clean:
