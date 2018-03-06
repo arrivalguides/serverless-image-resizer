@@ -40,14 +40,14 @@ exports.handler = function(event, context, callback) {
     });
   }
 
-  const match = key.match(/((\d+)x?(\d+)?\/)?(.+\.(png|jpg|jpeg|tif|tiff|webp))/);
+  const match = key.match(/((\d+)?x(\d+)?\/)?(.+\.(png|jpg|jpeg|tif|tiff|webp))/);
 
   if (match === null) {
     // URL don't match regexp
     return callback(null, {
         statusCode: '400',
         body: JSON.stringify({
-            error: 'Key does not match form: Nx?N?/name.[jpeg|jpg|png|tiff|webp]. Not supported image format.'
+            error: 'Key does not match form: N?xN?/name.[jpeg|jpg|png|tiff|webp]. Not supported image format.'
         }),
         headers: {
             'Content-Type': 'application/json'
@@ -57,8 +57,8 @@ exports.handler = function(event, context, callback) {
   
   
   const dimensions = match[1];
-  const width = parseInt(match[2], 10);
-  const height = parseInt(match[3], 10);
+  const width = (match[2] !== undefined) ? parseInt(match[2], 10) : null; //width == null for autoscale
+  const height = (match[3] !== undefined) ? parseInt(match[3], 10) : null; //height == null for autoscale
   let originalKey = match[4];
   let originalExtension = match[5];
 
