@@ -98,7 +98,7 @@ exports.handler = function(event, context, callback) {
           
         let image = Sharp(data.Body);
           
-        if ((originalExtension !== 'webp') && ('accept' in event.headers) && ( event.headers['accept'].indexOf('webp') > -1)) {
+        if ((originalExtension !== 'webp') && (event.headers !== undefined) && ('accept' in event.headers) && ( event.headers['accept'].indexOf('webp') > -1)) {
                 const extensionFix = RegExp(/.(jpeg|jpg|png|tiff|webp)/,'ig');
                 key = key.replace(extensionFix, '.webp');
                 originalExtension = 'webp';
