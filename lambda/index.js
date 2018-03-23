@@ -103,10 +103,10 @@ exports.handler = function(event, context, callback) {
                 key = key.replace(extensionFix, '.webp');
                 originalExtension = 'webp';
                 
-                return image.resize(width, height).toFormat('webp').toBuffer();
+                return image.resize(width, height).sharpen().quality(96).toFormat('webp').toBuffer();
         } 
             
-        return image.resize(width, height).toBuffer();
+        return image.resize(width, height).sharpen().quality(96).toBuffer();
           
     }).then(buffer => S3.putObject({
             Body: buffer,
