@@ -28,7 +28,7 @@ exports.handler = function(event, context, callback) {
   let key = event.queryStringParameters.key;
 
   // If we don't have key, that contain path to image, then we can't continue
-  if (key === undefined) {
+  if (key === null) {
     return callback(null, {
         statusCode: '400',
         body: JSON.stringify({
@@ -90,8 +90,10 @@ exports.handler = function(event, context, callback) {
     return;
   }
   
-  
-  S3.getObject({
+  S3.getObjectMetadata(originalKey).promise().then(() => {
+
+ 
+    S3.getObject({
             Bucket: BUCKET_SOURCE,
             Key: originalKey
       }).promise().then(data => {
@@ -119,7 +121,34 @@ exports.handler = function(event, context, callback) {
             headers: {'location': `${URL}/${key}`},
             body: '',
       })
-    ).catch(err => callback(err))
+    ).catch(error => callback(null,  {
+                statusCode: error.statusCode,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body:'getObject error',
+            }));
     
+     }).catch(error => {
+        if (error.statusCode === 404) {
+           return callback(null, {
+                statusCode: '404',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    error: 'File not found in source bucket.'
+                }),
+            });
+        } else {
+            return callback(null, {
+                statusCode: error.statusCode,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body:'getObjectMetadata error',
+            });
+        }
+  });
     
 }
