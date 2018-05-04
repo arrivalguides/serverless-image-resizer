@@ -96,19 +96,6 @@ exports.handler = function(event, context, callback) {
             Key: originalKey
     };
   
-//     S3.waitFor('objectExists', params, function(err, data) {
-//             if (err) {
-//                 return callback(null, {
-//                     statusCode: '404',
-//                     headers: {
-//                         'Content-Type': 'application/json'
-//                     },
-//                     body: JSON.stringify({
-//                         error: 'File not found in source bucket.'
-//                     }),
-//                 });   
-//             } 
-//     });
  
     S3.getObject(params).promise().then(data => {
           
