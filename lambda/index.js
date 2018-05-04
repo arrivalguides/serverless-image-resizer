@@ -138,7 +138,7 @@ exports.handler = function(event, context, callback) {
     ).catch(error => callback(null,  {
                 statusCode: error.statusCode,
                 body: JSON.stringify({
-                    error: 'getObject error'
+                    error: error.message
                 }),
                 headers: {
                     'Content-Type': 'application/json'
