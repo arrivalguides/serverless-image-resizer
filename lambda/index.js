@@ -28,7 +28,7 @@ exports.handler = function(event, context, callback) {
   let key = event.queryStringParameters.key;
 
   // If we don't have key, that contain path to image, then we can't continue
-  if (key === null) {
+  if (key === undefined) {
     return callback(null, {
         statusCode: '400',
         body: JSON.stringify({
@@ -90,13 +90,27 @@ exports.handler = function(event, context, callback) {
     return;
   }
   
-  S3.getObjectMetadata(originalKey).promise().then(() => {
-
- 
-    S3.getObject({
+  
+    var params = {
             Bucket: BUCKET_SOURCE,
             Key: originalKey
-      }).promise().then(data => {
+    };
+  
+    S3.waitFor('objectExists', params, function(err, data) {
+            if (err) {
+                return callback(null, {
+                    statusCode: '404',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        error: 'File not found in source bucket.'
+                    }),
+                });   
+            } 
+    });
+ 
+    S3.getObject(params).promise().then(data => {
           
         let image = Sharp(data.Body);
           
@@ -123,32 +137,13 @@ exports.handler = function(event, context, callback) {
       })
     ).catch(error => callback(null,  {
                 statusCode: error.statusCode,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body:'getObject error',
-            }));
-    
-     }).catch(error => {
-        if (error.statusCode === 404) {
-           return callback(null, {
-                statusCode: '404',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
-                    error: 'File not found in source bucket.'
+                    error: 'getObject error'
                 }),
-            });
-        } else {
-            return callback(null, {
-                statusCode: error.statusCode,
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body:'getObjectMetadata error',
-            });
-        }
-  });
+                }
+    }));
+    
     
 }
