@@ -8,6 +8,7 @@ const Url = require('url');
 
 const BUCKET_SOURCE = process.env.BUCKET_SOURCE;
 const BUCKET_TARGET = process.env.BUCKET_TARGET;
+const IMAGE_QUALITY = process.env.IMAGE_QUALITY ? process.env.IMAGE_QUALITY : 96;
 const URL = process.env.URL;
 const ALLOWED_DIMENSIONS = new Set();
 const ALLOWED_EXTENSIONS = new Set();
@@ -106,10 +107,10 @@ exports.handler = function(event, context, callback) {
                 key = key.replace(extensionFix, '.webp');
                 originalExtension = 'webp';
                 
-                return image.resize(width, height).sharpen().quality(96).toFormat('webp').toBuffer();
+                return image.resize(width, height).sharpen().quality(IMAGE_QUALITY).toFormat('webp').toBuffer();
         } 
             
-        return image.resize(width, height).sharpen().quality(96).toBuffer();
+        return image.resize(width, height).sharpen().quality(IMAGE_QUALITY).toBuffer();
           
     }).then(buffer => S3.putObject({
             Body: buffer,
