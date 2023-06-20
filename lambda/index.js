@@ -8,6 +8,7 @@ const Url = require('url');
 
 const BUCKET_SOURCE = process.env.BUCKET_SOURCE;
 const BUCKET_TARGET = process.env.BUCKET_TARGET;
+const IMAGE_QUALITY = process.env.IMAGE_QUALITY ? process.env.IMAGE_QUALITY : '96';
 const URL = process.env.URL;
 const ALLOWED_DIMENSIONS = new Set();
 const ALLOWED_EXTENSIONS = new Set();
